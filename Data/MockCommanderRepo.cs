@@ -9,6 +9,11 @@ namespace Commander.Data {
             throw new System.NotImplementedException();
         }
 
+        public void DeleteCommand(int id)
+        {
+            throw new System.NotImplementedException();
+        }
+
         public IEnumerable<Command> GetAllCommand()
         {
             var commands = new List<Command>(){
@@ -26,6 +31,11 @@ namespace Commander.Data {
         }
 
         public bool SaveChanges()
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public void UpdateCommand(Command cmd)
         {
             throw new System.NotImplementedException();
         }

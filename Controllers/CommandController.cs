@@ -4,6 +4,7 @@ using AutoMapper;
 using Commander.Data;
 using Commander.Dtos;
 using Commander.Models;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Commander.Controllers {
@@ -22,9 +23,9 @@ namespace Commander.Controllers {
 
         //GET api/command
         [HttpGet]
-        public ActionResult<IEnumerable<Command>> GetAllCommand() {
+        public ActionResult<IEnumerable<CommandReadDto>> GetAllCommand() {
             var commandItems = _repository.GetAllCommand();
-            return Ok(commandItems);
+            return Ok(_mapper.Map<IEnumerable<CommandReadDto>>(commandItems));
         }
 
         //GET api/command/{id}
@@ -47,6 +48,55 @@ namespace Commander.Controllers {
 
             var dtocommandModel = _mapper.Map<CommandReadDto>(commandModel);
             return CreatedAtRoute(nameof(GetCommandById), new {Id = dtocommandModel.Id}, dtocommandModel);
+        }
+
+        //PUT api/command/{id}
+        [HttpPut("{id}")]
+        public ActionResult<CommandReadDto> UpdateCommand(int id, CommandUpdateDto commandUpdateDto) {
+            var commandModelFromRepo = _repository.GetCommandById(id);
+            if (commandModelFromRepo == null) {
+                return NotFound();
+            }
+            _mapper.Map(commandUpdateDto, commandModelFromRepo);
+            _repository.UpdateCommand(commandModelFromRepo);
+            _repository.SaveChanges();
+
+            var dtocommandModel = _mapper.Map<CommandReadDto>(commandModelFromRepo);
+            return Ok(dtocommandModel);
+            // return NoContent();
+        }
+
+        // DELETE api/command/{id}
+        [HttpDelete("{id}")]
+        public ActionResult<DeleteDto> DeleteCommand(int id) {
+            var commandExists = _repository.GetCommandById(id);
+            if (commandExists == null) {
+                return NotFound();
+            }
+            _repository.DeleteCommand(id);
+            _repository.SaveChanges();
+
+            return Ok(new DeleteDto{Status=200, Message="The result has been deleted"});
+        }
+
+        //PATCH api/command/{id}
+        [HttpPatch("{id}")]
+        public ActionResult PartialCommandUpdate(int id, JsonPatchDocument<CommandUpdateDto> patchDocument) {
+            var commandExists = _repository.GetCommandById(id);
+            if (commandExists == null) {
+                return NotFound();
+            }
+
+            var commandToPatch = _mapper.Map<CommandUpdateDto>(commandExists);
+            patchDocument.ApplyTo(commandToPatch, ModelState);
+            if(!TryValidateModel(commandToPatch)) {
+                return ValidationProblem(ModelState);
+            }
+
+            _mapper.Map(commandToPatch, commandExists);
+            _repository.UpdateCommand(commandExists);
+            _repository.SaveChanges();
+            return NoContent();
         }
     }
 }

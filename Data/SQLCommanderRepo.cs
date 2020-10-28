@@ -22,6 +22,11 @@ namespace Commander.Data {
             _context.Commands.Add(cmd);
         }
 
+        public void DeleteCommand(int id)
+        {
+            _context.Commands.Remove(_context.Commands.FirstOrDefault(p => p.Id == id));
+        }
+
         public IEnumerable<Command> GetAllCommand()
         {
             return _context.Commands.ToList();
@@ -35,6 +40,11 @@ namespace Commander.Data {
         public bool SaveChanges()
         {
             return (_context.SaveChanges() >= 0);
+        }
+
+        public void UpdateCommand(Command cmd)
+        {
+            _context.Commands.Update(cmd);
         }
     }
 }
